@@ -1,8 +1,6 @@
-
 import com.formdev.flatlaf.fonts.inter.FlatInterFont;
 import com.formdev.flatlaf.fonts.jetbrains_mono.FlatJetBrainsMonoFont;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
-import com.formdev.flatlaf.themes.FlatMacLightLaf;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,8 +13,7 @@ public class App extends JFrame {
     public EditorView editorView;
 
     public JMenuBar menuBar;
-    public JMenu fileMenu;
-    public JMenuItem newProject, openProject, closeProject, saveProject;
+    public JMenu optionsMenu;
 
     public App() {
         setSize(800, 500);
@@ -36,32 +33,17 @@ public class App extends JFrame {
         editorView = new EditorView(this);
 
         menuBar = new JMenuBar();
-        fileMenu = new JMenu("File");
-        newProject = new JMenuItem("New Project");
-        openProject = new JMenuItem("Open Project");
-        closeProject = new JMenuItem("Close Project");
-        saveProject = new JMenuItem("Save Project");
+        optionsMenu = new JMenu("File");
 
         rootPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectView, editorView.getContentPanel());
-    }
-
-    public void initActionListeners() {
-        openProject.addActionListener(e -> projectView.openProject());
     }
 
     public void addComponent() {
         projectView.addComponent();
 
-        fileMenu.add(newProject);
-        fileMenu.add(openProject);
-        fileMenu.add(closeProject);
-        fileMenu.add(saveProject);
-
-        menuBar.add(fileMenu);
+        menuBar.add(optionsMenu);
 
         this.add(welcomeView);
-        //this.add(rootPanel, BorderLayout.CENTER);
-
 
         setVisible(true);
     }
@@ -84,7 +66,6 @@ public class App extends JFrame {
 
         App app = new App();
         app.init();
-        app.initActionListeners();
         app.addComponent();
     }
 
