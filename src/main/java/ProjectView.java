@@ -69,9 +69,6 @@ public class ProjectView extends JPanel {
                 openFile(file);
             }
         }
-
-
-
     }
 
     public void openDirectory(File inputFile) {

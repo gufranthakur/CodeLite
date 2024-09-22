@@ -48,8 +48,10 @@ public class EditorView extends RSyntaxTextArea{
         switch (colorScheme) {
             case "Monokai" : {
                 monokaiTheme.apply(this);
-                this.setBackground(app.getBackground().darker());
-                editorScrollPane.setBackground(app.getBackground().darker().darker());
+                if (app.darkTheme) {
+                    this.setBackground(app.getBackground().darker());
+                    editorScrollPane.setBackground(app.getBackground().darker().darker());
+                }
             }
                 break;
             case "Eclipse" : eclipseTheme.apply(this);

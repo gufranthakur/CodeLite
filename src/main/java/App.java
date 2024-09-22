@@ -22,7 +22,7 @@ public class App extends JFrame {
              runCodeItem,
              exitItem;
 
-    public static boolean darkTheme = true;
+    public boolean darkTheme = true;
     public Font editorFont;
 
     public App() {
@@ -70,6 +70,7 @@ public class App extends JFrame {
                 darkTheme = true;
                 UIManager.setLookAndFeel(new FlatMacDarkLaf());
                 welcomeView.openProjectButton.setBackground(new Color(20, 125, 241));
+
                 SwingUtilities.updateComponentTreeUI(this);
                 editorView.setFont(editorFont);
                 revalidate();
@@ -83,7 +84,7 @@ public class App extends JFrame {
             try {
                 darkTheme = false;
                 UIManager.setLookAndFeel(new FlatMacLightLaf());
-                welcomeView.openProjectButton.setBackground(new Color(8, 166, 33));
+                welcomeView.openProjectButton.setBackground(new Color(12, 182, 41));
                 SwingUtilities.updateComponentTreeUI(this);
                 editorView.setFont(editorFont);
                 revalidate();
