@@ -1,3 +1,5 @@
+import com.formdev.flatlaf.fonts.inter.FlatInterFont;
+
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -10,7 +12,7 @@ import java.util.Scanner;
 
 public class ProjectView extends JPanel {
 
-    private App app;
+    private final App app;
 
     private DefaultMutableTreeNode root;
     private JTree projectTree;
@@ -18,12 +20,15 @@ public class ProjectView extends JPanel {
 
     public ProjectView(App app) {
         this.app = app;
+        this.setPreferredSize(new Dimension(300, 1200));
+
         setLayout(new BorderLayout());
     }
 
     public void init() {
         root = new DefaultMutableTreeNode("Project");
         projectTree = new JTree(root);
+        projectTree.setFont(new Font(FlatInterFont.FAMILY, Font.PLAIN, 16));
         projectScrollPane = new JScrollPane(projectTree);
     }
 
@@ -40,7 +45,7 @@ public class ProjectView extends JPanel {
                 } catch (NullPointerException pointerException) {
                     System.out.println("No File Selected");
                 } catch (ClassCastException classCastException) {
-                    JOptionPane.showMessageDialog(null, "No project selected", "", JOptionPane.WARNING_MESSAGE);
+                    System.out.println("Exception");
                 }
 
             }
@@ -119,6 +124,10 @@ public class ProjectView extends JPanel {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public JTree getProjectTree() {
+        return projectTree;
     }
 
 }

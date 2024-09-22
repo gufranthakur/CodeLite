@@ -9,7 +9,9 @@ public class WelcomeView extends JPanel implements ComponentListener {
 
     private final JLabel titleLabel;
     private final JLabel mottoLabel;
-    private final JButton openProjectButton;
+    public JButton openProjectButton;
+
+    GradientPaint gradient;
 
     int titleWidth = 400, titleHeight = 200, mottoWidth = 400, mottoHeight = 100;
 
@@ -18,6 +20,7 @@ public class WelcomeView extends JPanel implements ComponentListener {
         this.addComponentListener(this);
         this.setBounds(0, 0, app.getWidth(), app.getHeight());
         this.setLayout(null);
+        this.setOpaque(false);
 
         titleLabel = new JLabel("{CodeLite}");
         titleLabel.setFont(new Font(FlatJetBrainsMonoFont.FAMILY, Font.BOLD, 52));
@@ -29,7 +32,9 @@ public class WelcomeView extends JPanel implements ComponentListener {
 
         openProjectButton = new JButton("Open Project");
         openProjectButton.setFont(new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, 18));
+
         openProjectButton.setBackground(new Color(12, 100, 181));
+
         openProjectButton.addActionListener(e -> {
             app.projectView.openProject();
             app.launch();
@@ -44,7 +49,11 @@ public class WelcomeView extends JPanel implements ComponentListener {
         super.paintComponent(g);
         Graphics2D g2D = (Graphics2D) g;
 
-        GradientPaint gradient = new GradientPaint(0, 0, new Color(25, 25, 25), getWidth(), getHeight(), new Color(30, 30, 30));
+        if (App.darkTheme) {
+            gradient = new GradientPaint(0, 0, new Color(32, 32, 32), getWidth(), getHeight(), new Color(40, 40, 40));
+        } else {
+            gradient = new GradientPaint(0, 0, new Color(6, 74, 181), getWidth(), getHeight(), new Color(84, 166, 251));
+        }
         g2D.setPaint(gradient);
         g2D.fillRect(0, 0, getWidth(), getHeight());
     }
