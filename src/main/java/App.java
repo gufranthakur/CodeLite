@@ -10,20 +10,34 @@ import java.io.IOException;
 
 public class App extends JFrame {
 
+    /* ------------------------------------------------------------------------
+                                        Views
+       -------------------------------------------------------------------------*/
+
     public WelcomeView welcomeView;
     public JSplitPane rootPanel;
     public ProjectView projectView;
     public EditorView editorView;
 
+    /* ------------------------------------------------------------------------
+                                        Root Panels
+       -------------------------------------------------------------------------*/
+
     public JTabbedPane rootTabbedPane;
     public JPanel rightSplitPanel;
     public JPanel toolPanel;
 
+    /* ------------------------------------------------------------------------
+                                        Terminal
+       -------------------------------------------------------------------------*/
+
     public JButton openTerminalButton;
-    public boolean isRunning = false;
-    public JComboBox fileComboBox;
     public String os = System.getProperty("os.name").toLowerCase();
     public ProcessBuilder pb;
+
+    /* ------------------------------------------------------------------------
+                                        Menu-bar Items
+       -------------------------------------------------------------------------*/
 
     public JMenuBar menuBar;
     public JMenu settingsMenu, themeItem, colorSchemeItem, languageItem;
@@ -33,6 +47,10 @@ public class App extends JFrame {
              javaItem, pythonItem, cItem, jsItem,
              runCodeItem,
              exitItem;
+
+    /* ------------------------------------------------------------------------
+                                        Front-end stuff
+       -------------------------------------------------------------------------*/
 
     public boolean darkTheme = true;
     public Font editorFont;
@@ -46,7 +64,12 @@ public class App extends JFrame {
     }
 
     public void init() {
+        //-----------------------Font-----------------------//
         editorFont = new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, 18);
+
+        /* ------------------------------------------------------------------------
+                                        Views
+       -------------------------------------------------------------------------*/
 
         welcomeView = new WelcomeView(this);
 
@@ -54,80 +77,104 @@ public class App extends JFrame {
         projectView.init();
         projectView.initActionListeners();
 
-        rightSplitPanel = new JPanel();
-        rightSplitPanel.setLayout(new BorderLayout());
-
-        rootTabbedPane = new JTabbedPane();
-
-        toolPanel = new JPanel();
-        toolPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-
-        fileComboBox = new JComboBox();
-
-        openTerminalButton = new JButton("Open Terminal");
-        openTerminalButton.setFont(new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, 14));
-        openTerminalButton.setBackground(new Color(30, 149, 23));
-        openTerminalButton.addActionListener(e -> {
-            //If terminal is not open
-            if (!isRunning) {
-
-                isRunning = true;
-                openTerminalButton.setBackground(new Color(230, 35, 35));
-                openTerminalButton.setText("Close Terminal");
-
-                try {
-                    if (os.contains("win"))
-                         pb = new ProcessBuilder("cmd", "/c", "start", "cmd.exe");
-                     else if (os.contains("mac"))
-                         pb = new ProcessBuilder("open", "-a", "Terminal");
-                     else if (os.contains("nix") || os.contains("nux") || os.contains("bsd"))
-                         pb = new ProcessBuilder("x-terminal-emulator");
-                     else
-                         JOptionPane.showMessageDialog(null, "Unsupported Operating System", "Error", JOptionPane.ERROR_MESSAGE);
-                    pb.start();
-
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    System.err.println("Failed to open terminal: " + ex.getMessage());
-                } catch (UnsupportedOperationException ex) {
-                    System.err.println(ex.getMessage());
-                }
-
-            } else {
-                isRunning = false;
-                openTerminalButton.setBackground(new Color(26, 172, 18));
-                openTerminalButton.setText("Run code");
-            }
-
-        });
-
         editorView = new EditorView(this);
 
+        /* ------------------------------------------------------------------------
+                                        Root-Panels
+       -------------------------------------------------------------------------*/
+
+        rightSplitPanel = new JPanel();
+        rootTabbedPane = new JTabbedPane();
+        toolPanel = new JPanel();
+        rootPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, rootTabbedPane, rightSplitPanel);
+
+        rightSplitPanel.setLayout(new BorderLayout());
+        toolPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+
         rootTabbedPane.add("Project", projectView);
+        rootTabbedPane.add("Source", projectView.getSourcePanel());
 
         rightSplitPanel.add(editorView.getContentPanel(), BorderLayout.CENTER);
         rightSplitPanel.add(toolPanel, BorderLayout.NORTH);
 
-        rootPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, rootTabbedPane, rightSplitPanel);
+        /* ------------------------------------------------------------------------
+                                        Terminal
+       -------------------------------------------------------------------------*/
+
+        openTerminalButton = new JButton("Open Terminal");
+        openTerminalButton.setFont(new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, 14));
+        openTerminalButton.setBackground(new Color(30, 126, 248));
+        openTerminalButton.addActionListener(e -> {
+            try {
+                if (os.contains("win"))
+                    pb = new ProcessBuilder("cmd", "/c", "start", "cmd.exe");
+                else if (os.contains("mac"))
+                    pb = new ProcessBuilder("open", "-a", "Terminal");
+                else if (os.contains("nix") || os.contains("nux") || os.contains("bsd"))
+                    pb = new ProcessBuilder("x-terminal-emulator");
+                else
+                    JOptionPane.showMessageDialog(null, "Unsupported Operating System", "Error", JOptionPane.ERROR_MESSAGE);
+                pb.start();
+
+            } catch (IOException ex) {
+                System.err.println("Failed to open terminal: " + ex.getMessage());
+            } catch (UnsupportedOperationException ex) {
+                System.err.println(ex.getMessage());
+            }
+        });
+
+        /* ------------------------------------------------------------------------
+                                        Menu-bar
+       -------------------------------------------------------------------------*/
+
         menuBar = new JMenuBar();
         settingsMenu = new JMenu("Settings", true);
 
+       /* ------------------------------------------------------------------------
+                                        menu-bar Items
+       -------------------------------------------------------------------------*/
+
         newProjectItem = new JMenuItem("Open new Project");
+        closeProjectItem = new JMenuItem("Close project");
+        saveProjectItem = new JMenuItem("Save project");
+
+        themeItem = new JMenu("Theme");
+                darkThemeItem = new JMenuItem("Dark");
+                lightThemeItem = new JMenuItem("Light");
+
+        colorSchemeItem = new JMenu("Color scheme");
+                monokaiItem = new JMenuItem("Monokai");
+                eclipseItem = new JMenuItem("Eclipse");
+                nightItem = new JMenuItem("Night");
+                redItem = new JMenuItem("Reversal Red");
+                blueItem = new JMenuItem("Amplified Blue");
+                purpleItem = new JMenuItem("Hollow Purple");
+
+        languageItem = new JMenu("Language support");
+                javaItem = new JMenuItem("Java");
+                pythonItem = new JMenuItem("Python");
+                cItem = new JMenuItem("C/C++");
+                jsItem = new JMenuItem("Javascript");
+
+        runCodeItem = new JMenuItem("Run code");
+        exitItem = new JMenuItem("Exit CodeLite");
+
+       /* ------------------------------------------------------------------------
+                                 Item Action-listeners
+       -------------------------------------------------------------------------*/
+
         newProjectItem.addActionListener(e -> {
             projectView.getProjectTree().removeAll();
             projectView.openProject();
         });
-        closeProjectItem = new JMenuItem("Close project");
+
         closeProjectItem.addActionListener(e -> {
             projectView.getProjectTree().removeAll();
             setContentPane(welcomeView);
             this.setSize(800, 500);
             this.setLocationRelativeTo(null);
         });
-        saveProjectItem = new JMenuItem("Save project");
 
-        themeItem = new JMenu("Theme");
-        darkThemeItem = new JMenuItem("Dark");
         darkThemeItem.addActionListener(e -> {
             try {
                 darkTheme = true;
@@ -142,7 +189,7 @@ public class App extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-        lightThemeItem = new JMenuItem("Light");
+
         lightThemeItem.addActionListener(e -> {
             try {
                 darkTheme = false;
@@ -156,46 +203,35 @@ public class App extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-        colorSchemeItem = new JMenu("Color scheme");
-        monokaiItem = new JMenuItem("Monokai");
+
         monokaiItem.addActionListener(e -> editorView.setColorScheme("Monokai"));
 
-        eclipseItem = new JMenuItem("Eclipse");
         eclipseItem.addActionListener(e -> editorView.setColorScheme("Eclipse"));
 
-        nightItem = new JMenuItem("Night");
         nightItem.addActionListener(e -> editorView.setColorScheme("Night"));
 
-        redItem = new JMenuItem("Reversal Red");
         redItem.addActionListener(e -> editorView.setColorScheme("Red"));
 
-        blueItem = new JMenuItem("Amplified Blue");
         blueItem.addActionListener(e -> editorView.setColorScheme("Blue"));
 
-        purpleItem = new JMenuItem("Hollow Purple");
         purpleItem.addActionListener(e -> editorView.setColorScheme("Purple"));
 
-        languageItem = new JMenu("Language support");
-        javaItem = new JMenuItem("Java");
         javaItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA));
-        pythonItem = new JMenuItem("Python");
+
         pythonItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON));
-        cItem = new JMenuItem("C/C++");
+
         cItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_C));
-        jsItem = new JMenuItem("Javascript");
+
         jsItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT));
 
-        runCodeItem = new JMenuItem("Run code");
-        exitItem = new JMenuItem("Exit CodeLite");
         exitItem.addActionListener(e -> System.exit(0));
     }
-
-    public void addFilesToComboBox() {
-        for (CustomNode node : projectView.codeFiles) fileComboBox.addItem(node.getNodeName());
-    }
-
     public void addComponent() {
         projectView.addComponent();
+
+       /* ------------------------------------------------------------------------
+                                        Menu-bar
+       -------------------------------------------------------------------------*/
 
         menuBar.add(settingsMenu);
         settingsMenu.add(newProjectItem);
@@ -227,8 +263,11 @@ public class App extends JFrame {
 
         settingsMenu.add(exitItem);
 
+        /* ------------------------------------------------------------------------
+                                        Everything else
+       -------------------------------------------------------------------------*/
+
         toolPanel.add(openTerminalButton);
-        toolPanel.add(fileComboBox);
 
         this.add(rootPanel, BorderLayout.CENTER);
         this.add(welcomeView);

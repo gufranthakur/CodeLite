@@ -15,13 +15,31 @@ public class ProjectView extends JPanel {
 
     private final App app;
 
+    /* ------------------------------------------------------------------------
+                                        Main root
+       -------------------------------------------------------------------------*/
+
     private DefaultMutableTreeNode root;
     private JTree projectTree;
     private JScrollPane projectScrollPane;
 
-    public ArrayList<CustomNode> projectFiles = new ArrayList<CustomNode>();
-    public ArrayList<CustomNode> codeFiles = new ArrayList<CustomNode>();
+    /* ------------------------------------------------------------------------
+                                        Source root
+       -------------------------------------------------------------------------*/
+
+    private JPanel sourcePanel;
+    public JTree sourceTree;
+    public DefaultMutableTreeNode sourceCodeRoot;
+
+    /* ------------------------------------------------------------------------
+                                        Data
+       -------------------------------------------------------------------------*/
+
+    public ArrayList<CustomNode> projectFiles = new ArrayList<>();
+    public ArrayList<CustomNode> codeFiles = new ArrayList<>();
     public String projectPath = null;
+
+    //------------------------------------------------------------------------------//
 
     public ProjectView(App app) {
         this.app = app;
@@ -35,9 +53,20 @@ public class ProjectView extends JPanel {
         projectTree = new JTree(root);
         projectTree.setFont(new Font(FlatInterFont.FAMILY, Font.PLAIN, 16));
         projectScrollPane = new JScrollPane(projectTree);
+
+        sourcePanel = new JPanel();
+        sourcePanel.setLayout(new BorderLayout());
+
+        sourceCodeRoot = new DefaultMutableTreeNode("Source Code");
+        sourceTree = new JTree(sourceCodeRoot);
+        sourceTree.setFont(new Font(FlatInterFont.FAMILY, Font.PLAIN, 16));
     }
 
     public void initActionListeners() {
+        /* ------------------------------------------------------------------------
+                                        Project Tree
+       -------------------------------------------------------------------------*/
+
         projectTree.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -45,8 +74,7 @@ public class ProjectView extends JPanel {
 
                 try {
                     CustomNode node = (CustomNode) projectTree.getLastSelectedPathComponent();
-                    app.editorView.setText(node.getContent());
-                    app.setTitle("CodeLite - " + node.getNodeName());
+                    setEditorContent(app.editorView, node);
                 } catch (NullPointerException pointerException) {
                     System.out.println("No File Selected");
                 } catch (ClassCastException classCastException) {
@@ -55,13 +83,39 @@ public class ProjectView extends JPanel {
 
             }
         });
+
+        /* ------------------------------------------------------------------------
+                                        Source Tree
+       -------------------------------------------------------------------------*/
+
+        sourceTree.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                try {
+                    CustomNode node = (CustomNode) sourceTree.getLastSelectedPathComponent();
+                    setEditorContent(app.editorView, node);
+                } catch (NullPointerException pointerException) {
+                    System.out.println("No File Selected");
+                } catch (ClassCastException classCastException) {
+                    System.out.println("Exception");
+                }
+            }
+        });
+    }
+
+    public void setEditorContent(EditorView editorView, CustomNode node) {
+        editorView.setText(node.getContent());
+        app.setTitle("CodeLite - " + node.getNodeName());
     }
 
     public void addComponent() {
         this.add(projectScrollPane, BorderLayout.CENTER);
+        sourcePanel.add(sourceTree, BorderLayout.CENTER);
     }
 
     public void openProject() {
+
         JFileChooser chooser = new JFileChooser();
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int result = chooser.showOpenDialog(null);
@@ -84,7 +138,12 @@ public class ProjectView extends JPanel {
         System.out.println(projectFiles);
         System.out.println(codeFiles);
         System.out.println(projectPath);
-        app.addFilesToComboBox();
+
+        ArrayList<CustomNode> src = codeFiles;
+
+        for (CustomNode node : src) sourceCodeRoot.add(node.clone());
+        DefaultTreeModel sourceTreeModel = (DefaultTreeModel) sourceTree.getModel();
+        sourceTreeModel.reload();
     }
 
     private void openDirectoryRecursive(File inputFile, DefaultMutableTreeNode parentNode) {
@@ -93,7 +152,7 @@ public class ProjectView extends JPanel {
             for (File file : files) {
                 CustomNode node;
                 if (file.isDirectory()) {
-                    node = new CustomNode(file.getName(), "", file.getAbsolutePath());
+                    node = new CustomNode(file.getName(), "");
                     openDirectoryRecursive(file, node);
                 } else {
                     try {
@@ -103,9 +162,12 @@ public class ProjectView extends JPanel {
                             data.append(scanner.nextLine()).append("\n");
                         }
                         scanner.close();
-                        node = new CustomNode(file.getName(), data.toString(), file.getAbsolutePath());
+                        node = new CustomNode(file.getName(), data.toString());
                         projectFiles.add(node);
-                        if (node.getNodeName().endsWith(".java")) {
+                        if (extension(node, ".java") ||
+                            extension(node, ".py") ||
+                            extension(node, ".c") || extension(node, ".cpp") ||
+                            extension(node, ".js"))  {
                             codeFiles.add(node);
                         }
                     } catch (FileNotFoundException e) {
@@ -119,6 +181,10 @@ public class ProjectView extends JPanel {
 
     }
 
+    public boolean extension(CustomNode node, String extName) {
+        return node.getNodeName().endsWith(extName);
+    }
+
     public void openFile(File file) {
         try {
             Scanner scanner = new Scanner(file);
@@ -128,7 +194,7 @@ public class ProjectView extends JPanel {
 
             while (scanner.hasNext()) data = data.concat(scanner.nextLine() + "\n");
 
-            CustomNode node = new CustomNode(name, data, file.getAbsolutePath());
+            CustomNode node = new CustomNode(name, data);
 
             root.add(node);
             DefaultTreeModel treeModel = (DefaultTreeModel) projectTree.getModel();
@@ -136,6 +202,10 @@ public class ProjectView extends JPanel {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public JPanel getSourcePanel() {
+        return sourcePanel;
     }
 
     public JTree getProjectTree() {
