@@ -8,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class ProjectView extends JPanel {
@@ -17,6 +18,10 @@ public class ProjectView extends JPanel {
     private DefaultMutableTreeNode root;
     private JTree projectTree;
     private JScrollPane projectScrollPane;
+
+    public ArrayList<CustomNode> projectFiles = new ArrayList<CustomNode>();
+    public ArrayList<CustomNode> codeFiles = new ArrayList<CustomNode>();
+    public String projectPath = null;
 
     public ProjectView(App app) {
         this.app = app;
@@ -41,7 +46,7 @@ public class ProjectView extends JPanel {
                 try {
                     CustomNode node = (CustomNode) projectTree.getLastSelectedPathComponent();
                     app.editorView.setText(node.getContent());
-                    app.setTitle("CodeLite - " + node.getName());
+                    app.setTitle("CodeLite - " + node.getNodeName());
                 } catch (NullPointerException pointerException) {
                     System.out.println("No File Selected");
                 } catch (ClassCastException classCastException) {
@@ -64,6 +69,7 @@ public class ProjectView extends JPanel {
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
             if (file.isDirectory()) {
+                projectPath = file.getAbsolutePath();
                 openDirectory(file);
             } else {
                 openFile(file);
@@ -75,6 +81,10 @@ public class ProjectView extends JPanel {
         openDirectoryRecursive(inputFile, root);
         DefaultTreeModel treeModel = (DefaultTreeModel) projectTree.getModel();
         treeModel.reload();
+        System.out.println(projectFiles);
+        System.out.println(codeFiles);
+        System.out.println(projectPath);
+        app.addFilesToComboBox();
     }
 
     private void openDirectoryRecursive(File inputFile, DefaultMutableTreeNode parentNode) {
@@ -83,7 +93,7 @@ public class ProjectView extends JPanel {
             for (File file : files) {
                 CustomNode node;
                 if (file.isDirectory()) {
-                    node = new CustomNode(file.getName(), "");
+                    node = new CustomNode(file.getName(), "", file.getAbsolutePath());
                     openDirectoryRecursive(file, node);
                 } else {
                     try {
@@ -93,7 +103,11 @@ public class ProjectView extends JPanel {
                             data.append(scanner.nextLine()).append("\n");
                         }
                         scanner.close();
-                        node = new CustomNode(file.getName(), data.toString());
+                        node = new CustomNode(file.getName(), data.toString(), file.getAbsolutePath());
+                        projectFiles.add(node);
+                        if (node.getNodeName().endsWith(".java")) {
+                            codeFiles.add(node);
+                        }
                     } catch (FileNotFoundException e) {
                         System.err.println("File not found: " + file.getAbsolutePath());
                         continue;
@@ -102,6 +116,7 @@ public class ProjectView extends JPanel {
                 parentNode.add(node);
             }
         }
+
     }
 
     public void openFile(File file) {
@@ -113,7 +128,7 @@ public class ProjectView extends JPanel {
 
             while (scanner.hasNext()) data = data.concat(scanner.nextLine() + "\n");
 
-            CustomNode node = new CustomNode(name, data);
+            CustomNode node = new CustomNode(name, data, file.getAbsolutePath());
 
             root.add(node);
             DefaultTreeModel treeModel = (DefaultTreeModel) projectTree.getModel();

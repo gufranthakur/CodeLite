@@ -2,9 +2,11 @@ import com.formdev.flatlaf.fonts.inter.FlatInterFont;
 import com.formdev.flatlaf.fonts.jetbrains_mono.FlatJetBrainsMonoFont;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 public class App extends JFrame {
 
@@ -12,6 +14,16 @@ public class App extends JFrame {
     public JSplitPane rootPanel;
     public ProjectView projectView;
     public EditorView editorView;
+
+    public JTabbedPane rootTabbedPane;
+    public JPanel rightSplitPanel;
+    public JPanel toolPanel;
+
+    public JButton openTerminalButton;
+    public boolean isRunning = false;
+    public JComboBox fileComboBox;
+    public String os = System.getProperty("os.name").toLowerCase();
+    public ProcessBuilder pb;
 
     public JMenuBar menuBar;
     public JMenu settingsMenu, themeItem, colorSchemeItem, languageItem;
@@ -42,10 +54,61 @@ public class App extends JFrame {
         projectView.init();
         projectView.initActionListeners();
 
+        rightSplitPanel = new JPanel();
+        rightSplitPanel.setLayout(new BorderLayout());
+
+        rootTabbedPane = new JTabbedPane();
+
+        toolPanel = new JPanel();
+        toolPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+
+        fileComboBox = new JComboBox();
+
+        openTerminalButton = new JButton("Open Terminal");
+        openTerminalButton.setFont(new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, 14));
+        openTerminalButton.setBackground(new Color(30, 149, 23));
+        openTerminalButton.addActionListener(e -> {
+            //If terminal is not open
+            if (!isRunning) {
+
+                isRunning = true;
+                openTerminalButton.setBackground(new Color(230, 35, 35));
+                openTerminalButton.setText("Close Terminal");
+
+                try {
+                    if (os.contains("win"))
+                         pb = new ProcessBuilder("cmd", "/c", "start", "cmd.exe");
+                     else if (os.contains("mac"))
+                         pb = new ProcessBuilder("open", "-a", "Terminal");
+                     else if (os.contains("nix") || os.contains("nux") || os.contains("bsd"))
+                         pb = new ProcessBuilder("x-terminal-emulator");
+                     else
+                         JOptionPane.showMessageDialog(null, "Unsupported Operating System", "Error", JOptionPane.ERROR_MESSAGE);
+                    pb.start();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    System.err.println("Failed to open terminal: " + ex.getMessage());
+                } catch (UnsupportedOperationException ex) {
+                    System.err.println(ex.getMessage());
+                }
+
+            } else {
+                isRunning = false;
+                openTerminalButton.setBackground(new Color(26, 172, 18));
+                openTerminalButton.setText("Run code");
+            }
+
+        });
+
         editorView = new EditorView(this);
 
-        rootPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectView, editorView.getContentPanel());
+        rootTabbedPane.add("Project", projectView);
 
+        rightSplitPanel.add(editorView.getContentPanel(), BorderLayout.CENTER);
+        rightSplitPanel.add(toolPanel, BorderLayout.NORTH);
+
+        rootPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, rootTabbedPane, rightSplitPanel);
         menuBar = new JMenuBar();
         settingsMenu = new JMenu("Settings", true);
 
@@ -114,14 +177,21 @@ public class App extends JFrame {
 
         languageItem = new JMenu("Language support");
         javaItem = new JMenuItem("Java");
+        javaItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA));
         pythonItem = new JMenuItem("Python");
+        pythonItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON));
         cItem = new JMenuItem("C/C++");
+        cItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_C));
         jsItem = new JMenuItem("Javascript");
+        jsItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT));
 
         runCodeItem = new JMenuItem("Run code");
         exitItem = new JMenuItem("Exit CodeLite");
         exitItem.addActionListener(e -> System.exit(0));
+    }
 
+    public void addFilesToComboBox() {
+        for (CustomNode node : projectView.codeFiles) fileComboBox.addItem(node.getNodeName());
     }
 
     public void addComponent() {
@@ -157,6 +227,8 @@ public class App extends JFrame {
 
         settingsMenu.add(exitItem);
 
+        toolPanel.add(openTerminalButton);
+        toolPanel.add(fileComboBox);
 
         this.add(rootPanel, BorderLayout.CENTER);
         this.add(welcomeView);
