@@ -1,3 +1,4 @@
+
 import com.formdev.flatlaf.fonts.inter.FlatInterFont;
 import com.formdev.flatlaf.fonts.jetbrains_mono.FlatJetBrainsMonoFont;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
@@ -6,51 +7,33 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 
 public class App extends JFrame {
-
-    /* ------------------------------------------------------------------------
-                                        Views
-       -------------------------------------------------------------------------*/
 
     public WelcomeView welcomeView;
     public JSplitPane rootPanel;
     public ProjectView projectView;
     public EditorView editorView;
 
-    /* ------------------------------------------------------------------------
-                                        Root Panels
-       -------------------------------------------------------------------------*/
-
-    public JTabbedPane rootTabbedPane;
     public JPanel rightSplitPanel;
     public JPanel toolPanel;
 
-    /* ------------------------------------------------------------------------
-                                        Terminal
-       -------------------------------------------------------------------------*/
-
     public JButton openTerminalButton;
+    public JButton saveFileButton;
+
     public String os = System.getProperty("os.name").toLowerCase();
     public ProcessBuilder pb;
 
-    /* ------------------------------------------------------------------------
-                                        Menu-bar Items
-       -------------------------------------------------------------------------*/
-
     public JMenuBar menuBar;
     public JMenu settingsMenu, themeItem, colorSchemeItem, languageItem;
-    public JMenuItem closeProjectItem, newProjectItem, saveProjectItem,
+    public JMenuItem closeProjectItem, newProjectItem,
              darkThemeItem, lightThemeItem,
              monokaiItem, eclipseItem, nightItem, redItem, blueItem, purpleItem,
              javaItem, pythonItem, cItem, jsItem,
              runCodeItem,
              exitItem;
-
-    /* ------------------------------------------------------------------------
-                                        Front-end stuff
-       -------------------------------------------------------------------------*/
 
     public boolean darkTheme = true;
     public Font editorFont;
@@ -64,12 +47,7 @@ public class App extends JFrame {
     }
 
     public void init() {
-        //-----------------------Font-----------------------//
         editorFont = new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, 18);
-
-        /* ------------------------------------------------------------------------
-                                        Views
-       -------------------------------------------------------------------------*/
 
         welcomeView = new WelcomeView(this);
 
@@ -79,27 +57,21 @@ public class App extends JFrame {
 
         editorView = new EditorView(this);
 
-        /* ------------------------------------------------------------------------
-                                        Root-Panels
-       -------------------------------------------------------------------------*/
-
         rightSplitPanel = new JPanel();
-        rootTabbedPane = new JTabbedPane();
+
         toolPanel = new JPanel();
-        rootPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, rootTabbedPane, rightSplitPanel);
+        rootPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectView, rightSplitPanel);
 
         rightSplitPanel.setLayout(new BorderLayout());
         toolPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 
-        rootTabbedPane.add("Project", projectView);
-        rootTabbedPane.add("Source", projectView.getSourcePanel());
-
         rightSplitPanel.add(editorView.getContentPanel(), BorderLayout.CENTER);
         rightSplitPanel.add(toolPanel, BorderLayout.NORTH);
 
-        /* ------------------------------------------------------------------------
-                                        Terminal
-       -------------------------------------------------------------------------*/
+        saveFileButton = new JButton("Save");
+        saveFileButton.setFont(new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, 14));
+        saveFileButton.setBackground(new Color(67, 175, 21));
+        saveFileButton.addActionListener(e -> projectView.saveFile());
 
         openTerminalButton = new JButton("Open Terminal");
         openTerminalButton.setFont(new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, 14));
@@ -107,13 +79,14 @@ public class App extends JFrame {
         openTerminalButton.addActionListener(e -> {
             try {
                 if (os.contains("win"))
-                    pb = new ProcessBuilder("cmd", "/c", "start", "cmd.exe");
+                    pb = new ProcessBuilder("cmd", "/c", "start", "powershell.exe");
                 else if (os.contains("mac"))
                     pb = new ProcessBuilder("open", "-a", "Terminal");
                 else if (os.contains("nix") || os.contains("nux") || os.contains("bsd"))
                     pb = new ProcessBuilder("x-terminal-emulator");
                 else
                     JOptionPane.showMessageDialog(null, "Unsupported Operating System", "Error", JOptionPane.ERROR_MESSAGE);
+                pb.directory(new File(projectView.projectPath));
                 pb.start();
 
             } catch (IOException ex) {
@@ -123,20 +96,11 @@ public class App extends JFrame {
             }
         });
 
-        /* ------------------------------------------------------------------------
-                                        Menu-bar
-       -------------------------------------------------------------------------*/
-
         menuBar = new JMenuBar();
         settingsMenu = new JMenu("Settings", true);
 
-       /* ------------------------------------------------------------------------
-                                        menu-bar Items
-       -------------------------------------------------------------------------*/
-
         newProjectItem = new JMenuItem("Open new Project");
         closeProjectItem = new JMenuItem("Close project");
-        saveProjectItem = new JMenuItem("Save project");
 
         themeItem = new JMenu("Theme");
                 darkThemeItem = new JMenuItem("Dark");
@@ -159,10 +123,6 @@ public class App extends JFrame {
         runCodeItem = new JMenuItem("Run code");
         exitItem = new JMenuItem("Exit CodeLite");
 
-       /* ------------------------------------------------------------------------
-                                 Item Action-listeners
-       -------------------------------------------------------------------------*/
-
         newProjectItem.addActionListener(e -> {
             projectView.getProjectTree().removeAll();
             projectView.openProject();
@@ -170,6 +130,8 @@ public class App extends JFrame {
 
         closeProjectItem.addActionListener(e -> {
             projectView.getProjectTree().removeAll();
+            projectView.projectFiles.clear();
+
             setContentPane(welcomeView);
             this.setSize(800, 500);
             this.setLocationRelativeTo(null);
@@ -183,8 +145,7 @@ public class App extends JFrame {
 
                 SwingUtilities.updateComponentTreeUI(this);
                 editorView.setFont(editorFont);
-                revalidate();
-                repaint();
+                projectView.refreshTree();
             } catch (UnsupportedLookAndFeelException ex) {
                 throw new RuntimeException(ex);
             }
@@ -197,46 +158,30 @@ public class App extends JFrame {
                 welcomeView.openProjectButton.setBackground(new Color(12, 182, 41));
                 SwingUtilities.updateComponentTreeUI(this);
                 editorView.setFont(editorFont);
-                revalidate();
-                repaint();
+                projectView.refreshTree();
             } catch (UnsupportedLookAndFeelException ex) {
                 throw new RuntimeException(ex);
             }
         });
 
         monokaiItem.addActionListener(e -> editorView.setColorScheme("Monokai"));
-
         eclipseItem.addActionListener(e -> editorView.setColorScheme("Eclipse"));
-
         nightItem.addActionListener(e -> editorView.setColorScheme("Night"));
-
         redItem.addActionListener(e -> editorView.setColorScheme("Red"));
-
         blueItem.addActionListener(e -> editorView.setColorScheme("Blue"));
-
         purpleItem.addActionListener(e -> editorView.setColorScheme("Purple"));
-
         javaItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA));
-
         pythonItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON));
-
         cItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_C));
-
         jsItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT));
-
         exitItem.addActionListener(e -> System.exit(0));
     }
     public void addComponent() {
         projectView.addComponent();
 
-       /* ------------------------------------------------------------------------
-                                        Menu-bar
-       -------------------------------------------------------------------------*/
-
         menuBar.add(settingsMenu);
         settingsMenu.add(newProjectItem);
         settingsMenu.add(closeProjectItem);
-        settingsMenu.add(saveProjectItem);
 
         settingsMenu.addSeparator();
         settingsMenu.add(themeItem);
@@ -263,11 +208,8 @@ public class App extends JFrame {
 
         settingsMenu.add(exitItem);
 
-        /* ------------------------------------------------------------------------
-                                        Everything else
-       -------------------------------------------------------------------------*/
-
         toolPanel.add(openTerminalButton);
+        toolPanel.add(saveFileButton);
 
         this.add(rootPanel, BorderLayout.CENTER);
         this.add(welcomeView);
@@ -284,20 +226,22 @@ public class App extends JFrame {
 
         this.setExtendedState(MAXIMIZED_BOTH);
         editorView.setColorScheme("Monokai");
-        this.revalidate();
-        this.repaint();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args){
         FlatMacDarkLaf.setup();
         FlatJetBrainsMonoFont.install();
         FlatInterFont.install();
 
         UIManager.put("defaultFont", new Font(FlatInterFont.FAMILY, Font.PLAIN, 13));
 
-        App app = new App();
-        app.init();
-        app.addComponent();
+        SwingUtilities.invokeLater(() -> {
+
+            App app = new App();
+            app.init();
+            app.addComponent();
+        });
     }
+
 
 }

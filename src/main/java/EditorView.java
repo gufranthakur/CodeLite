@@ -1,12 +1,15 @@
+import com.formdev.flatlaf.fonts.jetbrains_mono.FlatJetBrainsMonoFont;
 import org.fife.ui.rsyntaxtextarea.*;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.IOException;
 import java.io.InputStream;
 
 
-public class EditorView extends RSyntaxTextArea{
+public class EditorView extends RSyntaxTextArea implements KeyListener{
 
     private final RTextScrollPane editorScrollPane;
 
@@ -17,13 +20,14 @@ public class EditorView extends RSyntaxTextArea{
     public EditorView(App app) {
         super();
         this.app = app;
+        this.addKeyListener(this);
 
-        monokaiStream = EditorView.class.getResourceAsStream("/monokai.xml");
-        eclipseStream = EditorView.class.getResourceAsStream("/eclipse.xml");
-        nightStream = EditorView.class.getResourceAsStream("/night.xml");
-        redStream = EditorView.class.getResourceAsStream("/red.xml");
-        blueStream = EditorView.class.getResourceAsStream("/blue.xml");
-        purpleStream = EditorView.class.getResourceAsStream("/purple.xml");
+        monokaiStream = EditorView.class.getResourceAsStream("/themes/monokai.xml");
+        eclipseStream = EditorView.class.getResourceAsStream("/themes/eclipse.xml");
+        nightStream = EditorView.class.getResourceAsStream("/themes/night.xml");
+        redStream = EditorView.class.getResourceAsStream("/themes/red.xml");
+        blueStream = EditorView.class.getResourceAsStream("/themes/blue.xml");
+        purpleStream = EditorView.class.getResourceAsStream("/themes/purple.xml");
 
         try {
             monokaiTheme = Theme.load(monokaiStream);
@@ -41,18 +45,11 @@ public class EditorView extends RSyntaxTextArea{
         this.setRoundedSelectionEdges(true);
 
         editorScrollPane = new RTextScrollPane(this);
-
     }
 
     public void setColorScheme(String colorScheme) {
         switch (colorScheme) {
-            case "Monokai" : {
-                monokaiTheme.apply(this);
-                if (app.darkTheme) {
-                    this.setBackground(app.getBackground().darker());
-                    editorScrollPane.setBackground(app.getBackground().darker().darker());
-                }
-            }
+            case "Monokai" : monokaiTheme.apply(this);
                 break;
             case "Eclipse" : eclipseTheme.apply(this);
                 break;
@@ -72,5 +69,31 @@ public class EditorView extends RSyntaxTextArea{
     public JScrollPane getContentPanel() {
         return editorScrollPane;
     }
+
+    private int fontSize = 12;
+    private static final int MIN_FONT_SIZE = 8;
+    private static final int MAX_FONT_SIZE = 72;
+
+    @Override
+    public void keyTyped(KeyEvent e) {}
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.isControlDown()) {
+            if (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS) {
+                if (fontSize < MAX_FONT_SIZE) {
+                    fontSize++;
+                }
+            } else if (e.getKeyCode() == KeyEvent.VK_MINUS) {
+                if (fontSize > MIN_FONT_SIZE) {
+                    fontSize--;
+                }
+            }
+            this.setFont(new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, fontSize));
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {}
 
 }

@@ -1,13 +1,15 @@
 import javax.swing.tree.DefaultMutableTreeNode;
 
-public class CustomNode extends DefaultMutableTreeNode implements Cloneable{
+public class CustomNode extends DefaultMutableTreeNode{
 
-    private final String nodeName, content;
+    private String nodeName, content, path;
+    public boolean isDirectory;
 
-    public CustomNode(String name, String content) {
+    public CustomNode(String name, String content, String path) {
         super(name);
         this.nodeName = name;
         this.content = content;
+        this.path = path;
     }
 
     public String getNodeName() {
@@ -18,9 +20,23 @@ public class CustomNode extends DefaultMutableTreeNode implements Cloneable{
         return content;
     }
 
-    @Override
-    public DefaultMutableTreeNode clone(){
-        return (CustomNode) super.clone();
+    public String getFilePath() {
+        return path;
     }
+
+    public void setFilePath(String newPath) {
+        this.path = newPath;
+    }
+
+    public void setContent(String newContent){
+        content = newContent;
+    }
+
+    public void setNodeName(String newName) {
+        this.nodeName = newName;
+        this.setUserObject(newName);
+    }
+
+
 
 }
