@@ -125,11 +125,13 @@ public class App extends JFrame {
 
         newProjectItem.addActionListener(e -> {
             projectView.getProjectTree().removeAll();
+            projectView.root.removeAllChildren();
             projectView.openProject();
         });
 
         closeProjectItem.addActionListener(e -> {
             projectView.getProjectTree().removeAll();
+            projectView.root.removeAllChildren();
             projectView.projectFiles.clear();
 
             setContentPane(welcomeView);

@@ -19,7 +19,7 @@ public class ProjectView extends JPanel {
 
     private final App app;
 
-    private CustomNode root;
+    public CustomNode root;
     private JTree projectTree;
     private JScrollPane projectScrollPane;
     public String directoryPath;
