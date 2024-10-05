@@ -24,6 +24,7 @@ public class App extends JFrame {
     public JButton saveFileButton;
 
     public String os = System.getProperty("os.name").toLowerCase();
+    public String currentFileParentPath;
     public ProcessBuilder pb;
 
     public JMenuBar menuBar;
@@ -69,9 +70,12 @@ public class App extends JFrame {
         rightSplitPanel.add(toolPanel, BorderLayout.NORTH);
 
         saveFileButton = new JButton("Save");
+        saveFileButton.setEnabled(false);
         saveFileButton.setFont(new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, 14));
         saveFileButton.setBackground(new Color(67, 175, 21));
         saveFileButton.addActionListener(e -> projectView.saveFile());
+
+        currentFileParentPath = projectView.projectPath;
 
         openTerminalButton = new JButton("Open Terminal");
         openTerminalButton.setFont(new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, 14));
@@ -86,13 +90,17 @@ public class App extends JFrame {
                     pb = new ProcessBuilder("x-terminal-emulator");
                 else
                     JOptionPane.showMessageDialog(null, "Unsupported Operating System", "Error", JOptionPane.ERROR_MESSAGE);
-                pb.directory(new File(projectView.projectPath));
+
+                    pb.directory(new File(currentFileParentPath));
+
                 pb.start();
 
             } catch (IOException ex) {
                 System.err.println("Failed to open terminal: " + ex.getMessage());
             } catch (UnsupportedOperationException ex) {
                 System.err.println(ex.getMessage());
+            } catch (NullPointerException ex) {
+                JOptionPane.showMessageDialog(null, "Select a folder to open the terminal", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

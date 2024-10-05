@@ -57,7 +57,14 @@ public class ProjectView extends JPanel {
                 super.mouseClicked(e);
                     try {
                         CustomNode node = (CustomNode) projectTree.getLastSelectedPathComponent();
-                        if (!node.isDirectory) setEditorContent(app.editorView, node);
+                        if (!node.isDirectory) {
+                            setEditorContent(app.editorView, node);
+                            app.saveFileButton.setEnabled(true);
+
+                        } else {
+                            app.saveFileButton.setEnabled(false);
+                            app.currentFileParentPath = node.getFilePath();
+                        }
                     } catch (NullPointerException pointerException) {
                         System.out.println("No File Selected");
                     } catch (ClassCastException classCastException) {
