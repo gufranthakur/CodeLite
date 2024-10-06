@@ -33,8 +33,11 @@ public class App extends JFrame {
              darkThemeItem, lightThemeItem,
              monokaiItem, eclipseItem, nightItem, redItem, blueItem, purpleItem,
              javaItem, pythonItem, cItem, jsItem,
-             runCodeItem,
+            autoSaveItem,
              exitItem;
+
+    public boolean autoSave;
+    public Timer autoSavaTimer;
 
     public boolean darkTheme = true;
     public Font editorFont;
@@ -100,7 +103,13 @@ public class App extends JFrame {
             } catch (UnsupportedOperationException ex) {
                 System.err.println(ex.getMessage());
             } catch (NullPointerException ex) {
-                JOptionPane.showMessageDialog(null, "Select a folder to open the terminal", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Select a file to open the terminal", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        autoSavaTimer = new Timer(1000, e -> {
+            if (projectView.getProjectTree().getLastSelectedPathComponent() != null) {
+                projectView.saveFile();
             }
         });
 
@@ -128,7 +137,7 @@ public class App extends JFrame {
                 cItem = new JMenuItem("C/C++");
                 jsItem = new JMenuItem("Javascript");
 
-        runCodeItem = new JMenuItem("Run code");
+        autoSaveItem = new JMenuItem("Auto save : Off");
         exitItem = new JMenuItem("Exit CodeLite");
 
         newProjectItem.addActionListener(e -> {
@@ -184,6 +193,20 @@ public class App extends JFrame {
         pythonItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON));
         cItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_C));
         jsItem.addActionListener(e -> editorView.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT));
+        autoSaveItem.addActionListener(e -> {
+            if (autoSave) {
+                autoSave = false;
+                autoSaveItem.setText("Auto save : Off");
+                saveFileButton.setVisible(true);
+                autoSavaTimer.stop();
+            }
+            else {
+                autoSave = true;
+                autoSaveItem.setText("Auto save : On");
+                saveFileButton.setVisible(false);
+                autoSavaTimer.start();
+            }
+        });
         exitItem.addActionListener(e -> System.exit(0));
     }
     public void addComponent() {
@@ -198,7 +221,7 @@ public class App extends JFrame {
         settingsMenu.add(colorSchemeItem);
         settingsMenu.addSeparator();
         settingsMenu.add(languageItem);
-        settingsMenu.add(runCodeItem);
+        settingsMenu.add(autoSaveItem);
         settingsMenu.addSeparator();
 
         themeItem.add(darkThemeItem);

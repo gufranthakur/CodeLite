@@ -60,10 +60,11 @@ public class ProjectView extends JPanel {
                         if (!node.isDirectory) {
                             setEditorContent(app.editorView, node);
                             app.saveFileButton.setEnabled(true);
+                            CustomNode parentNode = (CustomNode) node.getParent();
+                            app.currentFileParentPath = parentNode.getFilePath();
 
                         } else {
                             app.saveFileButton.setEnabled(false);
-                            app.currentFileParentPath = node.getFilePath();
                         }
                     } catch (NullPointerException pointerException) {
                         System.out.println("No File Selected");
