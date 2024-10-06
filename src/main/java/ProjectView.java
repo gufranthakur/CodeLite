@@ -312,4 +312,8 @@ public class ProjectView extends JPanel {
         return projectTree;
     }
 
+    public CustomNode getSelectedCustomNode() {
+        return (CustomNode) projectTree.getLastSelectedPathComponent();
+    }
+
 }

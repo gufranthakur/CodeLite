@@ -33,10 +33,11 @@ public class App extends JFrame {
              darkThemeItem, lightThemeItem,
              monokaiItem, eclipseItem, nightItem, redItem, blueItem, purpleItem,
              javaItem, pythonItem, cItem, jsItem,
-            autoSaveItem,
+             autoSaveItem, projectViewItem,
              exitItem;
 
     public boolean autoSave;
+    public boolean projectViewEnabled = true;
     public Timer autoSavaTimer;
 
     public boolean darkTheme = true;
@@ -56,6 +57,7 @@ public class App extends JFrame {
         welcomeView = new WelcomeView(this);
 
         projectView = new ProjectView(this);
+        projectView.setMinimumSize(new Dimension(200, 0));
         projectView.init();
         projectView.initActionListeners();
 
@@ -85,13 +87,14 @@ public class App extends JFrame {
         openTerminalButton.setBackground(new Color(30, 126, 248));
         openTerminalButton.addActionListener(e -> {
             try {
-                if (os.contains("win"))
-                    pb = new ProcessBuilder("cmd", "/c", "start", "powershell.exe");
-                else if (os.contains("mac"))
+
+                if (os.contains("win")) {
+                    pb = new ProcessBuilder("cmd" , "/c" , "start" , "powershell.exe");
+                } else if (os.contains("mac")) {
                     pb = new ProcessBuilder("open", "-a", "Terminal");
-                else if (os.contains("nix") || os.contains("nux") || os.contains("bsd"))
+                } else if (os.contains("nix") || os.contains("nux") || os.contains("bsd")) {
                     pb = new ProcessBuilder("x-terminal-emulator");
-                else
+                } else
                     JOptionPane.showMessageDialog(null, "Unsupported Operating System", "Error", JOptionPane.ERROR_MESSAGE);
 
                     pb.directory(new File(currentFileParentPath));
@@ -138,6 +141,7 @@ public class App extends JFrame {
                 jsItem = new JMenuItem("Javascript");
 
         autoSaveItem = new JMenuItem("Auto save : Off");
+        projectViewItem = new JMenuItem("Project view : Enabled");
         exitItem = new JMenuItem("Exit CodeLite");
 
         newProjectItem.addActionListener(e -> {
@@ -207,6 +211,23 @@ public class App extends JFrame {
                 autoSavaTimer.start();
             }
         });
+        projectViewItem.addActionListener(e -> {
+            if (projectViewEnabled) {
+                projectViewEnabled = false;
+                projectView.setVisible(false);
+                rootPanel.setDividerLocation(0);
+                projectViewItem.setText("Project view : Disabled");
+            } else {
+                projectViewEnabled = true;
+                projectView.setVisible(true);
+
+                rootPanel.setDividerLocation(200);
+                projectViewItem.setText("Project view : Enabled");
+
+                revalidate();
+                repaint();
+            }
+        });
         exitItem.addActionListener(e -> System.exit(0));
     }
     public void addComponent() {
@@ -222,6 +243,7 @@ public class App extends JFrame {
         settingsMenu.addSeparator();
         settingsMenu.add(languageItem);
         settingsMenu.add(autoSaveItem);
+        settingsMenu.add(projectViewItem);
         settingsMenu.addSeparator();
 
         themeItem.add(darkThemeItem);
