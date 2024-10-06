@@ -36,9 +36,9 @@ public class App extends JFrame {
              autoSaveItem, projectViewItem,
              exitItem;
 
-    public boolean autoSave;
+    public boolean autoSave = false;
     public boolean projectViewEnabled = true;
-    public Timer autoSavaTimer;
+    public Timer autoSaveTimer;
 
     public boolean darkTheme = true;
     public Font editorFont;
@@ -80,6 +80,7 @@ public class App extends JFrame {
         saveFileButton.setBackground(new Color(67, 175, 21));
         saveFileButton.addActionListener(e -> projectView.saveFile());
 
+
         currentFileParentPath = projectView.projectPath;
 
         openTerminalButton = new JButton("Open Terminal");
@@ -110,7 +111,7 @@ public class App extends JFrame {
             }
         });
 
-        autoSavaTimer = new Timer(1000, e -> {
+        autoSaveTimer = new Timer(1000, e -> {
             if (projectView.getProjectTree().getLastSelectedPathComponent() != null) {
                 projectView.saveFile();
             }
@@ -202,13 +203,13 @@ public class App extends JFrame {
                 autoSave = false;
                 autoSaveItem.setText("Auto save : Off");
                 saveFileButton.setVisible(true);
-                autoSavaTimer.stop();
+                autoSaveTimer.stop();
             }
             else {
                 autoSave = true;
                 autoSaveItem.setText("Auto save : On");
                 saveFileButton.setVisible(false);
-                autoSavaTimer.start();
+                autoSaveTimer.start();
             }
         });
         projectViewItem.addActionListener(e -> {
