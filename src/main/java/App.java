@@ -98,8 +98,12 @@ public class App extends JFrame {
                 } else
                     JOptionPane.showMessageDialog(null, "Unsupported Operating System", "Error", JOptionPane.ERROR_MESSAGE);
 
-                    pb.directory(new File(currentFileParentPath));
 
+                if (!projectView.getSelectedCustomNode().getParent().isLeaf()) {
+                    pb.directory(new File(projectView.projectPath));
+                } else {
+                    pb.directory(new File(currentFileParentPath));
+                }
                 pb.start();
 
             } catch (IOException ex) {
@@ -108,12 +112,6 @@ public class App extends JFrame {
                 System.err.println(ex.getMessage());
             } catch (NullPointerException ex) {
                 JOptionPane.showMessageDialog(null, "Select a file to open the terminal", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        autoSaveTimer = new Timer(1000, e -> {
-            if (projectView.getProjectTree().getLastSelectedPathComponent() != null) {
-                projectView.saveFile();
             }
         });
 
